@@ -5,6 +5,8 @@
 [![tests](https://github.com/copick/copickmod/actions/workflows/test.yml/badge.svg)](https://github.com/copick/copickmod/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+<img width="2044" height="1406" alt="cmod-windows" src="https://github.com/user-attachments/assets/1af81874-2fbf-4e77-bb41-ca942a2f773c" />
+
 `cmod` opens a tomogram from a [copick](https://github.com/copick/copick) project in a window that works like
 IMOD's 3dmod. It replaces patching OME-Zarr support into IMOD:
 
