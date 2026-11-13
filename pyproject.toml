@@ -1,0 +1,143 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "copickmod"
+dynamic = ["version"]
+description = "cmod: a lean 3dmod-style viewer for copick tomograms, picks and segmentations."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors = [
+    { name = "Utz H. Ermel", email = "utz.ermel@czii.org" },
+]
+keywords = ["copick", "cryoet", "cryo-et", "tomography", "imod", "3dmod", "viewer"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+dependencies = [
+    "copick>=1.28,<2",
+    "numpy",
+    "click",
+    "qtpy",
+    "PyQt5>=5.15",
+    "PyOpenGL",  # the 3D Model View (fixed-function OpenGL, like 3dmod's)
+    "scikit-image",  # isosurfaces of segmentations in the Model View
+    "trimesh",  # copick meshes
+    "mrcfile",  # MRC files opened next to copick tomograms
+]
+
+[project.urls]
+Repository = "https://github.com/copick/copickmod.git"
+Issues = "https://github.com/copick/copickmod/issues"
+Documentation = "https://github.com/copick/copickmod#readme"
+
+[project.optional-dependencies]
+pyside6 = ["PySide6"]
+test = [
+    "pytest>=8.4.1",
+    "pytest-cov>=6.2.1",
+    "pytest-qt>=4.4.0",
+]
+dev = [
+    "black>=25.1.0",
+    "hatchling>=1.25.0",
+    "hatch-vcs>=0.4.0",
+    "pre-commit>=4.2.0",
+    "ruff>=0.12.0",
+]
+
+[project.scripts]
+cmod = "copickmod.cli:main"
+
+[project.entry-points."copick.commands"]
+cmod = "copickmod.cli:cmod"
+
+[tool.hatch.version]
+path = "src/copickmod/__init__.py"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/copickmod"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = ["tests"]
+addopts = "--strict-config --strict-markers"
+qt_api = "pyqt5"
+
+[tool.black]
+line-length = 120
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E", "W",  # pycodestyle
+    "F",       # pyflakes
+    "B",       # bugbear
+    "I",       # isort
+    "N",       # pep8-naming
+    "ASYNC",   # async
+    "COM",     # commas
+    "C4",      # comprehensions
+    "DTZ",     # datetimez
+    "ISC",     # implicit-str-concat
+    "G",       # logging-format
+    "T20",     # print
+    "SIM",     # simplify
+]
+ignore = [
+    "G004",   # logging format
+    "W293",   # blank line contains whitespace
+    "B008",   # Do not perform calls in argument defaults (click)
+    "B905",   # `zip()` without an explicit `strict=` parameter
+    "N802",   # Function name should be lowercase (Qt: paintEvent, keyPressEvent, ...)
+    "N803",   # Argument name should be lowercase (geometry names follow 3dmod, e.g. L for the layout)
+    "N805",   # First argument of a method should be named `self`
+    "N806",   # Variable in function should be lowercase (matrices)
+    "N999",   # Invalid module name
+    "E501",   # line too long
+    "C408",   # rewrite empty built-ins as literals
+    "SIM108", # ternaries
+    "T201",   # print statements (CLI)
+    "DTZ007", # Datetime objects without timezones.
+    "DTZ005", # More datetimes without timezones.
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["copickmod"]
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "double"
+
+[tool.coverage.run]
+source_pkgs = ["copickmod", "tests"]
+branch = true
+parallel = true
+
+[tool.coverage.paths]
+copickmod = ["src/copickmod", "*/copickmod/src/copickmod"]
+tests = ["tests", "*/copickmod/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]

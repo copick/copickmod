@@ -1,0 +1,61 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+    paths-ignore:
+      - "docs/**"
+      - "*.md"
+      - "LICENSE"
+      - ".gitignore"
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "docs/**"
+      - "*.md"
+      - "LICENSE"
+      - ".gitignore"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: ubuntu py${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.7.13"
+          python-version: ${{ matrix.python-version }}
+
+      # Qt's xcb platform libraries, and Mesa for the Model View (software OpenGL, as on VNC desktops)
+      - uses: tlambert03/setup-qt-libs@v1
+      - name: Install OpenGL and Xvfb
+        run: sudo apt-get update && sudo apt-get install -y libgl1 libglx-mesa0 libgl1-mesa-dri xvfb
+
+      - name: Install copickmod
+        run: uv sync --locked --extra test --extra dev
+
+      - name: Run tests
+        run: >
+          xvfb-run -a -s "-screen 0 1600x1000x24"
+          uv run pytest -vvv -p no:warnings --color=yes --cov --cov-branch --cov-report=xml --cov-report=term-missing tests
+
+      - name: Coverage
+        uses: codecov/codecov-action@v5
