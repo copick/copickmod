@@ -342,17 +342,18 @@ class EntityTable(QWidget):
             item.setCheckState(0, Qt.Unchecked)
             item.setData(0, Qt.UserRole, obj)
             item.setToolTip(0, name)
-            if self.kind in (PICKS, FILAMENTS):
-                item.setTextAlignment(3, Qt.AlignRight | Qt.AlignVCenter)
-                item.setText(3, "...")
-                fut = pool.submit(_count, obj, self.kind)
-                fut.add_done_callback(lambda f, n=name: self._bridge.done.emit(n, f.exception() or f.result()))
             if self.kind == FILAMENTS:
                 item.addChild(QTreeWidgetItem(["Loading..."]))
             for c in range(len(cols)):
                 item.setBackground(c, tint(rgba))
             self.tree.addTopLevelItem(item)
             self._items[name] = item
+            if self.kind in (PICKS, FILAMENTS):
+                # After the item is registered: a count that is already done calls back at once, on this thread.
+                item.setTextAlignment(3, Qt.AlignRight | Qt.AlignVCenter)
+                item.setText(3, "...")
+                fut = pool.submit(_count, obj, self.kind)
+                fut.add_done_callback(lambda f, n=name: self._bridge.done.emit(n, f.exception() or f.result()))
         for c in range(self.tree.columnCount()):
             self.tree.resizeColumnToContents(c)
         self.tree.blockSignals(False)
