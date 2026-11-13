@@ -179,3 +179,25 @@ def test_thumbnail(copick_config):
     img, caption = make_thumbnail(root.get_run("TS_001"), size=64)
     assert img.dtype == np.uint8 and max(img.shape) <= 64 and img.std() > 0
     assert caption.startswith("denoised")
+
+
+def test_counts_shown_when_already_done(copick_config, qtbot):
+    """A count that has finished before its callback is attached must still reach the table."""
+    from concurrent.futures import Future
+
+    from copickmod.app import Viewer, ViewOptions
+
+    class Finished:  # an executor whose futures are done by the time submit returns
+        def submit(self, fn, *args):
+            fut = Future()
+            fut.set_result(fn(*args))
+            return fut
+
+    _, root = copick_config
+    run = project.get_run(root, "TS_001")
+    viewer = Viewer(root, ViewOptions())
+    browser = viewer.show_browser()
+    qtbot.addWidget(browser)
+    picks = browser.tables["picks"]
+    picks.populate(list(run.picks), Finished())
+    assert picks.tree.topLevelItem(0).text(3) == "3"
